@@ -24,6 +24,10 @@ class Parser {
             return new Token(tokenTypes.newline);
         }
         
+        if (this.currentToken.type == tokenTypes.dash) {
+            return this.parseDash();
+        }
+        
         return null;
     }
     parseHeader() {
@@ -50,18 +54,11 @@ class Parser {
             if (this.currentToken.type == tokenTypes.equal) {
                 return this.parseEqual();
             }
+
+            if (this.currentToken.type == tokenTypes.dash) {
+                return this.parseDash();
+            }
         }
-
-        const lexer = new Lexer(this.previousToken.value);
-        const tokens = [];
-        let currentToken = lexer.getNextToken();
-
-        while (currentToken.type != tokenTypes.eoi) {
-            tokens.push(currentToken);
-            currentToken = lexer.getNextToken();
-        }
-
-        console.log(tokens);
 
         return this.previousToken;
     }
@@ -70,6 +67,9 @@ class Parser {
         this.eat(tokenTypes.equal);
         
         if (previousToken.type == tokenTypes.string) {
+            if (this.currentToken.type == tokenTypes.newline) {
+                this.eat(tokenTypes.newline);
+            }
             return new Token(tokenTypes.h1, previousToken.value, tokenTypes.header);
         }
         
@@ -111,18 +111,24 @@ class Parser {
         return olToken;
     }
     parseBlockquote() {
-        this.eat(tokenTypes.blockquote);
+        let quoteText = "";
+        
+        while (this.currentToken.type == tokenTypes.blockquote) {
+            this.eat(tokenTypes.blockquote);
+    
+            if (this.currentToken.type != tokenTypes.string) {
+                break;
+            }
 
-        if (this.currentToken.type == tokenTypes.string) {
             this.eat(tokenTypes.string);
+            quoteText += this.previousToken.value;
 
-        } else if (this.currentToken.type == tokenTypes.link) {
-            this.eat(tokenTypes.link);
-            const linkToken = `<a href="${this.previousToken.value}" target="_blank">${this.previousToken.otherKeys.linkText}</a>`
-            return new Token(tokenTypes.blockquote, linkToken);
+            if (this.currentToken.type == tokenTypes.newline) {
+                this.eat(tokenTypes.newline);
+            }
         }
 
-        return new Token(tokenTypes.blockquote, this.previousToken.value);
+        return new Token(tokenTypes.blockquote, quoteText);
     }
     parseBold() {
         this.eat(tokenTypes.bold);
@@ -148,6 +154,28 @@ class Parser {
             return new Token(tokenTypes.string, paragraph);
         }
         
+        return this.previousToken;
+    }
+    parseDash() {
+        const previousToken = this.previousToken;
+
+        if (previousToken.type == tokenTypes.string) {
+            this.eat(tokenTypes.dash);
+            return new Token(tokenTypes.h2, previousToken.value, tokenTypes.header);
+        }
+
+        if (previousToken.type == tokenTypes.newline) {
+            this.eat(tokenTypes.dash);
+            if (this.previousToken.value >= 3) {
+                return new Token(tokenTypes.hr);
+            }
+            return new Token(tokenTypes.string, "-".repeat(this.previousToken.value));
+        }
+
+        this.eat(tokenTypes.dash);
+        
+        this.previousToken = new Token(tokenTypes.string, this.previousToken.value);
+
         return this.previousToken;
     }
     parse() {

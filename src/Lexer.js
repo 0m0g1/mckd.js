@@ -80,9 +80,9 @@ class Lexer {
             }
 
             if (/[\n\r]/.test(currentToken) || this.currentPositionOnInput >= this.input.length) {
-                if (noOfDashes >= 3) {
+                if (noOfDashes >= 1) {
                     this.currentPositionOnInput++;
-                    return new Token(tokenTypes.hr)
+                    return new Token(tokenTypes.dash, noOfDashes)
                 }
             }
 
