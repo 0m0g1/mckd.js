@@ -1,0 +1,36 @@
+:root {
+    --mg: 0.5rem;
+    --sg: calc(var(--mg) / 2);
+    --vsg: calc(var(--mg) / 4);
+    --lg: calc(var(--mg) * 2);
+    --vlg: calc(var(--mg) * 4);
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    padding-bottom: 3%;
+}
+
+ul {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    list-style-type: none;
+}
+
+.cont {
+    padding: var(--mg);
+}
+
+.fw {
+    width: 100%;
+}
+
+.fh {
+    height: 100%;
+}
