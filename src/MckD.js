@@ -25,6 +25,21 @@ class MckD {
 
         // Applying the Roboto font to the iframe body
         this.iframeDoc.body.style.fontFamily = 'Roboto, sans-serif';
+
+        const style = this.iframeDoc.createElement("style");
+        style.textContent = `
+            .inline-code {
+                background-color: #f4f4f4;
+                padding: 0px 7px;
+                font-size: 1.2em;
+            }
+            pre {
+                background: #222222;
+                color: whitesmoke;
+                padding:0.5rem;
+            }
+        `
+        this.iframeDoc.head.appendChild(style);
     }
     removeScripts() {
         const scripts = this.iframeDoc.querySelectorAll("script");

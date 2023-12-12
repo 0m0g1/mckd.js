@@ -58,8 +58,9 @@ class Parser {
                     this.eat(tokenTypes.string);
                     
                     if (this.currentToken.type == tokenTypes.newline) {
-                        this.eat(tokenTypes.newline);
+                        this.eat(tokenTypes.newline)
                     }
+
                 }
 
             } else if (this.currentToken.type == tokenTypes.equal) {

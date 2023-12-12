@@ -155,6 +155,9 @@ class Lexer {
             } else if (currentToken == "_") {
                 string += this.getUnderScoredBoldOrItalic();
 
+            } else if (currentToken == "`") {
+                string += this.getCodeToken();
+
             } else {
                 string += this.input[this.currentPositionOnInput];
                 this.currentPositionOnInput++;
@@ -223,7 +226,7 @@ class Lexer {
 
             const token = new Token(tokenTypes.link, url, null, {urlText: urlText});
 
-            return `<a href="${token.value}" target="_blank">${token.otherKeys.urlText}</a>`;
+            return `<a href="${token.value}">${token.otherKeys.urlText}</a>`;
         }
     }
     getStarredBoldOrItalic() {
@@ -312,7 +315,7 @@ class Lexer {
             currentToken = this.input[this.currentPositionOnInput];
             
             if (currentToken != "[") {
-                return this.getStringToken("!");
+                return this.getStringToken("!").value;
             }
             
             this.currentPositionOnInput++;
@@ -320,14 +323,14 @@ class Lexer {
             currentToken = this.input[this.currentPositionOnInput];
             
             if (currentToken != "]") {
-                return this.getStringToken("![");
+                return this.getStringToken(`![${altText}`).value;
             }
             
             this.currentPositionOnInput++;
             currentToken = this.input[this.currentPositionOnInput];
             
             if (currentToken != "(") {
-                return this.getStringToken(`![${altText}]`);
+                return this.getStringToken(`![${altText}]`).value;
             }
             
             this.currentPositionOnInput++;
@@ -340,7 +343,7 @@ class Lexer {
                 currentToken = this.input[this.currentPositionOnInput];
 
                 if (currentToken != '"') {
-                    return this.getStringToken(`![${altText}](${imgUrl} `)
+                    return this.getStringToken(`![${altText}](${imgUrl} `).value
                 }
                 
                 this.currentPositionOnInput++;
@@ -349,7 +352,7 @@ class Lexer {
                 currentToken = this.input[this.currentPositionOnInput];
                 
                 if (currentToken != '"') {
-                    return this.getStringToken(`![${altText}](${imgUrl} "`)
+                    return this.getStringToken(`![${altText}](${imgUrl} "`).value
                 }
                 
                 this.currentPositionOnInput++;
@@ -359,15 +362,73 @@ class Lexer {
 
             if (currentToken != ")") {
                 if (altText == "") {
-                    return this.getStringToken(`![${altText}](${imgUrl} "${altText}"`);
+                    return this.getStringToken(`![${altText}](${imgUrl} "${altText}"`).value;
                 }
-                return this.getStringToken(`![${altText}](${imgUrl}`);
+                return this.getStringToken(`![${altText}](${imgUrl}`).value;
             }
             
             this.currentPositionOnInput++;
             return `<img src="${imgUrl}" alt="${altText} title="${optionalTitle}">`
         }
     }
+    getCodeToken() {
+        let currentToken = this.input[this.currentPositionOnInput];
+        let noOfBackTicks = 0;
+    
+        // Count the number of backticks
+        while (this.input[this.currentPositionOnInput] === "`" && this.currentPositionOnInput < this.input.length) {
+            noOfBackTicks++;
+            this.currentPositionOnInput++;
+        }
+    
+        if (noOfBackTicks < 3) {
+            let code = this.getStringToken("", "`").value;
+    
+            // If code doesn't end with a backtick, return the string enclosed by backticks
+            if (this.input[this.currentPositionOnInput] !== "`") {
+                return `${"`".repeat(noOfBackTicks)}${code}`;
+            }
+    
+            // Move past the closing backticks
+            while (this.input[this.currentPositionOnInput] === "`") {
+                noOfBackTicks--;
+                this.currentPositionOnInput++;
+            }
+    
+            // Handle the scenarios based on the remaining number of backticks
+            if (noOfBackTicks < 0) {
+                return `<code class="inline-code">${code}</code>${"`".repeat(noOfBackTicks * -1)}`;
+            }
+    
+            return `${"`".repeat(noOfBackTicks)}<code class="inline-code">${code}</code>`;
+        }
+    
+        if (noOfBackTicks === 3) {
+            let language = this.getStringToken();
+            let code = "";
+            
+            this.currentPositionOnInput++;
+            while (this.currentPositionOnInput < this.input.length) {
+                if (this.input.slice(this.currentPositionOnInput, this.currentPositionOnInput + 3) === "```" &&
+                    (/[\n\r]/.test(this.input[this.currentPositionOnInput + 3])) || this.currentPositionOnInput + 3 >= this.input.length) {
+                    this.currentPositionOnInput += 3;
+                    return `<pre><code>${code}</code></pre>`;
+                }
+                code += this.input[this.currentPositionOnInput];
+                this.currentPositionOnInput++;
+        
+                // Check for the end of input before reaching the closing triple backticks
+                if (this.currentPositionOnInput >= this.input.length) {
+                    return `<pre><code>${code}</code></pre>`;
+                }
+            }
+        }
+        
+    
+        // If it's not a code block or inline code, return the backticks
+        return "`".repeat(noOfBackTicks);
+    }
+    
 }
 
 export default Lexer;
