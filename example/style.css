@@ -14,17 +14,29 @@
 
 body {
     height: 100vh;
-    padding-bottom: 3%;
+    
+    padding-bottom: 3.2%;
+    overflow: hidden;
 }
 
 ul {
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 49.5% 49.5%;
     list-style-type: none;
 }
 
 .cont {
     padding: var(--mg);
+}
+
+.hcont {
+    padding-left: var(--mg);
+    padding-right: var(--mg);
+}
+
+.vcont {
+    padding-top: var(--mg);
+    padding-bottom: var(--mg);
 }
 
 .fw {
@@ -33,4 +45,8 @@ ul {
 
 .fh {
     height: 100%;
+}
+
+.mg {
+    gap: var(--mg);
 }

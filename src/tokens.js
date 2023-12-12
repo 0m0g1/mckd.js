@@ -14,7 +14,7 @@ const tokenTypes = Object.freeze({
     "eoi": "eoi",
     "img": "img",
     "equal": "=",
-    "link": "link",
+    "script": "script",
     "string": "string",
     "header": "header",
     "leftbracket": "(",

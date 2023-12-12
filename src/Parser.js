@@ -45,22 +45,32 @@ class Parser {
     }
     parseString() {
         this.eat(tokenTypes.string);
+        let string = this.previousToken.value;
 
         if (this.currentToken.type == tokenTypes.newline) {
             const previousToken = this.previousToken;
             this.eat(tokenTypes.newline);
             this.previousToken = previousToken;
-            
-            if (this.currentToken.type == tokenTypes.equal) {
-                return this.parseEqual();
-            }
 
-            if (this.currentToken.type == tokenTypes.dash) {
+            if (this.currentToken.type == tokenTypes.string) {
+                while (this.currentToken.type == tokenTypes.string) {
+                    string += this.currentToken.value;
+                    this.eat(tokenTypes.string);
+                    
+                    if (this.currentToken.type == tokenTypes.newline) {
+                        this.eat(tokenTypes.newline);
+                    }
+                }
+
+            } else if (this.currentToken.type == tokenTypes.equal) {
+                return this.parseEqual();
+
+            } else if (this.currentToken.type == tokenTypes.dash) {
                 return this.parseDash();
             }
         }
 
-        return this.previousToken;
+        return new Token(tokenTypes.string, string);
     }
     parseEqual() {
         const previousToken = this.previousToken;
@@ -228,8 +238,23 @@ class Parser {
         } else if (this.currentToken.type == tokenTypes.italic) {
             tokens.push(this.parseItalic());
             tokens.push(...this.parse());
+        
+        } else if (this.currentToken.type == tokenTypes.script) {
+            tokens.push(this.currentToken);
+            this.eat(tokenTypes.script);
+            tokens.push(...this.parse());
         }
         
+        tokens.sort((a, b) => {
+            if (a.type === tokenTypes.script && b.type !== tokenTypes.script) {
+                return 1;
+            } else if (a.type !== tokenTypes.script && b.type === tokenTypes.script) {
+                return -1;
+            } else {
+                return 0;
+            }
+        })
+
         return tokens;
     }
 }

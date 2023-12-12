@@ -121,67 +121,6 @@ class Lexer {
             }
         }
 
-        if (currentToken == "!") {
-            this.currentPositionOnInput++;
-            currentToken = this.input[this.currentPositionOnInput];
-            
-            if (currentToken != "[") {
-                return this.getStringToken("!");
-            }
-            
-            this.currentPositionOnInput++;
-            const altText = this.getStringToken("", "]").value;
-            currentToken = this.input[this.currentPositionOnInput];
-            
-            if (currentToken != "]") {
-                return this.getStringToken("![");
-            }
-            
-            this.currentPositionOnInput++;
-            currentToken = this.input[this.currentPositionOnInput];
-            
-            if (currentToken != "(") {
-                return this.getStringToken(`![${altText}]`);
-            }
-            
-            this.currentPositionOnInput++;
-            const imgUrl = this.getStringToken("", ")").value;
-            currentToken = this.input[this.currentPositionOnInput];
-            let optionalTitle = "";
-
-            if (currentToken == " ") {
-                this.currentPositionOnInput++;
-                currentToken = this.input[this.currentPositionOnInput];
-
-                if (currentToken != '"') {
-                    return this.getStringToken(`![${altText}](${imgUrl} `)
-                }
-                
-                this.currentPositionOnInput++;
-
-                optionalTitle = this.getStringToken("", '"');
-                currentToken = this.input[this.currentPositionOnInput];
-                
-                if (currentToken != '"') {
-                    return this.getStringToken(`![${altText}](${imgUrl} "`)
-                }
-                
-                this.currentPositionOnInput++;
-            }
-            
-            currentToken = this.input[this.currentPositionOnInput];
-
-            if (currentToken != ")") {
-                if (altText == "") {
-                    return this.getStringToken(`![${altText}](${imgUrl} "${altText}"`);
-                }
-                return this.getStringToken(`![${altText}](${imgUrl}`);
-            }
-            
-            this.currentPositionOnInput++;
-            return new Token(tokenTypes.img, imgUrl, null, {altText: altText, optionalTitle: optionalTitle})
-        }
-
         if (!/[\n\r]/.test(currentToken)) {
             return this.getStringToken();
         }
@@ -193,7 +132,22 @@ class Lexer {
             let currentToken = this.input[this.currentPositionOnInput];
 
             if (currentToken == "[") {
-                string += this.getLinkToken();
+                const link = this.getLinkToken();
+
+                if (link.type === tokenTypes.script) {
+                    return link;
+                }
+                
+                string += link;
+
+            } else if (currentToken == "!") {
+                const image = this.getImageToken();
+
+                if (image.type === tokenTypes.img) {
+                    return image;
+                }
+
+                string += image;
 
             } else if (currentToken == "*") {
                 string += this.getStarredBoldOrItalic();
@@ -218,6 +172,8 @@ class Lexer {
 
         if (currentToken == "[") {
             this.currentPositionOnInput++;
+            currentToken = this.input[this.currentPositionOnInput];
+
             const urlText = this.getStringToken("", "]").value;
 
             if (this.input[this.currentPositionOnInput] != "]") {
@@ -227,8 +183,29 @@ class Lexer {
             this.currentPositionOnInput++;
             currentToken = this.input[this.currentPositionOnInput];
             
+            if (currentToken == ":") {
+                this.currentPositionOnInput++;
+                currentToken = this.input[this.currentPositionOnInput];
+
+                if (currentToken == " ") {
+                    this.currentPositionOnInput++;
+                    currentToken = this.input[this.currentPositionOnInput];
+                }
+
+                const url = this.getStringToken().value;
+
+                const script = `
+                    const links = document.querySelectorAll(".${urlText}link");
+
+                    for (const link of links) {
+                        link.href = "${url}"
+                    }
+                `
+                return new Token(tokenTypes.script, script);
+            }
+            
             if (currentToken != "(") {
-                return `[${urlText}]`;
+                return `<a class="${urlText}link">${urlText}</a>`;
             }
             
             this.currentPositionOnInput++;
@@ -236,15 +213,17 @@ class Lexer {
             
             currentToken = this.input[this.currentPositionOnInput];
 
-            if (currentToken != ")") {
-                return `[${urlText}](${url}`;
+            if (currentToken !== ")") {
+                if (this.input[this.currentPositionOnInput - 1] !== ")"){
+                    return `[${urlText}](${url}`;
+                }
             }
 
             this.currentPositionOnInput++;
 
-            const token = new Token(tokenTypes.link, url, null, {linkText: urlText});
+            const token = new Token(tokenTypes.link, url, null, {urlText: urlText});
 
-            return `<a href="${token.value}" target="_blank">${token.otherKeys.linkText}</a>`;
+            return `<a href="${token.value}" target="_blank">${token.otherKeys.urlText}</a>`;
         }
     }
     getStarredBoldOrItalic() {
@@ -323,6 +302,70 @@ class Lexer {
 
             this.currentPositionOnInput++;
             return` <b>${boldText}</b>`;
+        }
+    }
+    getImageToken() {
+        let currentToken = this.input[this.currentPositionOnInput];
+
+        if (currentToken == "!") {
+            this.currentPositionOnInput++;
+            currentToken = this.input[this.currentPositionOnInput];
+            
+            if (currentToken != "[") {
+                return this.getStringToken("!");
+            }
+            
+            this.currentPositionOnInput++;
+            const altText = this.getStringToken("", "]").value;
+            currentToken = this.input[this.currentPositionOnInput];
+            
+            if (currentToken != "]") {
+                return this.getStringToken("![");
+            }
+            
+            this.currentPositionOnInput++;
+            currentToken = this.input[this.currentPositionOnInput];
+            
+            if (currentToken != "(") {
+                return this.getStringToken(`![${altText}]`);
+            }
+            
+            this.currentPositionOnInput++;
+            const imgUrl = this.getStringToken("", ")").value;
+            currentToken = this.input[this.currentPositionOnInput];
+            let optionalTitle = "";
+
+            if (currentToken == " ") {
+                this.currentPositionOnInput++;
+                currentToken = this.input[this.currentPositionOnInput];
+
+                if (currentToken != '"') {
+                    return this.getStringToken(`![${altText}](${imgUrl} `)
+                }
+                
+                this.currentPositionOnInput++;
+
+                optionalTitle = this.getStringToken("", '"');
+                currentToken = this.input[this.currentPositionOnInput];
+                
+                if (currentToken != '"') {
+                    return this.getStringToken(`![${altText}](${imgUrl} "`)
+                }
+                
+                this.currentPositionOnInput++;
+            }
+            
+            currentToken = this.input[this.currentPositionOnInput];
+
+            if (currentToken != ")") {
+                if (altText == "") {
+                    return this.getStringToken(`![${altText}](${imgUrl} "${altText}"`);
+                }
+                return this.getStringToken(`![${altText}](${imgUrl}`);
+            }
+            
+            this.currentPositionOnInput++;
+            return `<img src="${imgUrl}" alt="${altText} title="${optionalTitle}">`
         }
     }
 }

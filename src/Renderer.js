@@ -35,6 +35,9 @@ class Renderer {
     renderString(token) {
         return `<p>${token.value}</p>`
     }
+    renderScript(token) {
+        return `<script>${token.value}</script>`
+    }
     render(tokens) {
         let renderedString = "";
 
@@ -65,6 +68,9 @@ class Renderer {
             } else if (token.type == tokenTypes.img) {
                 renderedString += this.renderImg(token);
                 
+            } else if (token.type == tokenTypes.script) {
+                renderedString += this.renderScript(token);
+
             }
         }
 
