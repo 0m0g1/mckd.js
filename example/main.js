@@ -4,7 +4,7 @@ const markdownInput = document.querySelector("#markdown-input");
 const markdownInterprater = new MckD({"element": ".markdown-display"});
 
 async function fetchContent() {
-    let textData = (await fetch("/example/text.md")).text();
+    let textData = (await fetch("./example/text.md")).text();
     return textData;
 }
 
