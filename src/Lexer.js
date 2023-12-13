@@ -1,4 +1,4 @@
-import Token from "./token.js";
+import Token from "./Token.js";
 import tokenTypes from "./tokens.js";
 
 function isSeriesOfCharacter(str, character) {
