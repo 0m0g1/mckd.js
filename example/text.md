@@ -1,40 +1,36 @@
-Marked - Markdown Parser
-========================
+# MckD Markdown Renderer
 
-[Marked] `lets` you convert [Markdown] into HTML.  Markdown is a simple text format whose goal is to be very easy to read and write, even when not converted to HTML.  This demo page will let you type anything you like and see how it gets converted.  Live.  No more waiting around.
+The MckD Markdown Renderer is a versatile tool for converting Markdown into HTML. Here's a guide on how to leverage its functionalities:
 
+## Installation
+
+To begin using the MckD Markdown Renderer, follow these steps:
+
+1. **Download:** Obtain the MckD library from the [GitHub repository](https://github.com/0m0g1/mckd.js).
+2. **Setup:** Include the `Mckd.js` file in your project's source.
+
+## Usage
+
+### Example
+
+Create a html file where the markdown will be displayed.
+
+```Html
+<div class="markdown-display">
+  <!-- Rendered Markdown will appear here -->
+</div>
 ```
-This is a test preformated code.
+
+Initialize the MckD Markdown Renderer by importing it into your project:
+
+```javascript
+import MckD from "../src/Mckd.js";
+const markdownInterpreter = new MckD({ "element": ".markdown-display" });
+markdownInterpreter.render(markdownText);
 ```
 
-How To Use The Demo
--------------------
+### Explanation
 
-1. Type in stuff on the left.
-2. See the live updates on the right.
-
-That's it.  Pretty simple.  There's also a drop-down option above to switch between various views:
-
-- **Preview:**  A live display of the generated HTML as it would render in a browser.
-- **HTML Source:**  The generated HTML before your browser makes it pretty.
-- **Lexer Data:**  What [marked] uses internally, in case you like gory stuff like this.
-- **Quick Reference:**  A brief run-down of how to format things using markdown.
-
-Why Markdown?
--------------
-
-It's easy.  It's not overly bloated, unlike HTML.  Also, as the creator of [markdown] says,
-
-> The overriding design goal for Markdown's
-> formatting syntax is to make it as readable
-> as possible. The idea is that a
-> Markdown-formatted document should be
-> publishable as-is, as plain text, without
-> looking like it's been marked up with tags
-> or formatting instructions.
-
-Ready to start writing?  Either start changing stuff on the left or
-[clear everything](/demo/?text=) with a simple click.
-
-[Marked]: https://github.com/markedjs/marked/
-[Markdown]: http://daringfireball.net/projects/markdown/
+MckD will create an iframe in the element which you've specified while initializind the renderer.
+This is where the rendered markdown will be displayed.
+The `render()` method is what changes the html of the iframe.

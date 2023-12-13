@@ -1,5 +1,5 @@
-import Lexer from "./lexer.js";
-import Parser from "./parser.js";
+import Lexer from "./Lexer.js";
+import Parser from "./Parser.js";
 import tokenTypes from "./tokens.js";
 
 class Renderer {
@@ -22,6 +22,9 @@ class Renderer {
         }
 
         return `<ol start="${token.otherKeys.start}">${listString}</ol>`
+    }
+    renderTable(token) {
+        return token.value;
     }
     renderImg(token) {
         return `<img alt="${token.otherKeys.altText}" src="${token.value}" title="${token.otherKeys.optionalTitle}">`
@@ -70,6 +73,9 @@ class Renderer {
                 
             } else if (token.type == tokenTypes.script) {
                 renderedString += this.renderScript(token);
+
+            } else if (token.type == tokenTypes.table) {
+                renderedString += this.renderTable(token);
 
             }
         }

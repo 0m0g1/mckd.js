@@ -15,7 +15,7 @@
 body {
     height: 100vh;
     
-    padding-bottom: 3.2%;
+    padding-bottom: 6%;
     overflow: hidden;
 }
 
@@ -49,4 +49,14 @@ ul {
 
 .mg {
     gap: var(--mg);
+}
+
+.hcontainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.vcontainer {
+    display: flex;
+    flex-direction: column;
 }

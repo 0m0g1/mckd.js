@@ -10,14 +10,14 @@ async function fetchContent() {
 
 
 markdownInput.oninput = () => {
-    markdownInterprater.interprate(markdownInput.value);
+    markdownInterprater.render(markdownInput.value);
 }
 
 window.onload = async () => {
     const content = await fetchContent();
     if (content) {
         markdownInput.value = content;
-        markdownInterprater.interprate(markdownInput.value);
+        markdownInterprater.render(markdownInput.value);
     } else {
         throw("There was an error fetching text.md")
     }

@@ -1,6 +1,11 @@
 import Token from "./token.js";
 import tokenTypes from "./tokens.js";
 
+function isSeriesOfCharacter(str, character) {
+    const regex = new RegExp(`^${character}+$`);
+    return regex.test(str);
+}
+
 class Lexer {
     constructor(input) {
         this.input = input;
@@ -110,6 +115,10 @@ class Lexer {
             return this.getStringToken(`${digit}`);
         }
 
+        if (currentToken == "|") {
+            return this.getTableToken();
+        }
+
         if (currentToken === ">") {
             if (this.currentPositionOnInput + 1 >= this.input.length || this.currentPositionOnInput + 2 >= this.input.length) {
                 this.currentPositionOnInput++;
@@ -198,9 +207,9 @@ class Lexer {
                 const url = this.getStringToken().value;
 
                 const script = `
-                    const links = document.querySelectorAll(".${urlText}link");
+                    const links${urlText} = document.querySelectorAll(".${urlText}link");
 
-                    for (const link of links) {
+                    for (const link of links${urlText}) {
                         link.href = "${url}"
                     }
                 `
@@ -404,7 +413,7 @@ class Lexer {
         }
     
         if (noOfBackTicks === 3) {
-            let language = this.getStringToken();
+            let language = this.getStringToken().value.toLowerCase();
             let code = "";
             
             this.currentPositionOnInput++;
@@ -412,14 +421,18 @@ class Lexer {
                 if (this.input.slice(this.currentPositionOnInput, this.currentPositionOnInput + 3) === "```" &&
                     (/[\n\r]/.test(this.input[this.currentPositionOnInput + 3])) || this.currentPositionOnInput + 3 >= this.input.length) {
                     this.currentPositionOnInput += 3;
-                    return `<pre><code>${code}</code></pre>`;
+                    return `<pre><code class="language-${language}">${code}</code></pre>`;
                 }
-                code += this.input[this.currentPositionOnInput];
+
+                code += this.input[this.currentPositionOnInput]
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("&", "&amp;");
                 this.currentPositionOnInput++;
         
                 // Check for the end of input before reaching the closing triple backticks
                 if (this.currentPositionOnInput >= this.input.length) {
-                    return `<pre><code>${code}</code></pre>`;
+                    return `<pre><code class="language-${language}">${code}</code></pre>`;
                 }
             }
         }
@@ -428,7 +441,73 @@ class Lexer {
         // If it's not a code block or inline code, return the backticks
         return "`".repeat(noOfBackTicks);
     }
+    getTableToken() {
+        let table = "<table>\n";
+        let row = [];
+        let cellContent = "";
+        let isHeaderRow = true;
     
+        while (this.currentPositionOnInput < this.input.length) {
+            let currentToken = this.input[this.currentPositionOnInput];
+    
+            if (/[\n\r]/.test(currentToken) && this.input[this.currentPositionOnInput + 1] != "|") {
+                break;
+            }
+
+            if (currentToken === "|" || /[\n\r]/.test(currentToken) ) {
+
+                if (cellContent.trim() !== "") {
+                    row.push(cellContent.trim());
+                    cellContent = "";
+                }
+    
+                if (currentToken === "|" && (this.currentPositionOnInput === this.input.length - 1 || this.input[this.currentPositionOnInput + 1] === "\n")) {
+                    row.push(""); // Add empty cell for last pipe in the row
+                }
+    
+                if (/[\n\r]/.test(currentToken)) {
+                    if (isHeaderRow) {
+                        table += "  <thead>\n";
+                    }
+                    table += "  <tr>\n";
+                    const rowType = isHeaderRow ? "th" : "td";
+                    for (let cell of row) {
+                        table += `    <${rowType}>${cell}</${rowType}>\n`;
+                    }
+                    table += "  </tr>\n";
+                    if (isHeaderRow) {
+                        table += "  </thead>\n";
+                        table += "  <tbody>\n";
+                        isHeaderRow = false;
+                    }
+                    row = [];
+                }
+            } else {
+                cellContent += currentToken;
+            }
+
+            this.currentPositionOnInput++;
+        }
+    
+        // Push the last row's content if any
+        if (row.length > 0) {
+            table += "  <tr>\n";
+            for (let cell of row) {
+                table += `    <td>${cell}</td>\n`;
+            }
+            table += "  </tr>\n";
+        }
+    
+        table += "  </tbody>\n";
+        table += "</table>";
+    
+        // Check for tokens after the table
+        while (/\s/.test(this.input[this.currentPositionOnInput]) && this.currentPositionOnInput < this.input.length) {
+            this.currentPositionOnInput++;
+        }
+    
+        return new Token(tokenTypes.table, table);
+    }
 }
 
 export default Lexer;

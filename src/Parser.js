@@ -1,4 +1,3 @@
-import Lexer from "./lexer.js";
 import Token from "./token.js";
 import tokenTypes from "./tokens.js";
 
@@ -243,6 +242,11 @@ class Parser {
         } else if (this.currentToken.type == tokenTypes.script) {
             tokens.push(this.currentToken);
             this.eat(tokenTypes.script);
+            tokens.push(...this.parse());
+
+        } else if (this.currentToken.type == tokenTypes.table) {
+            tokens.push(this.currentToken);
+            this.eat(tokenTypes.table);
             tokens.push(...this.parse());
         }
         

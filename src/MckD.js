@@ -29,20 +29,36 @@ class MckD {
         const style = this.iframeDoc.createElement("style");
         style.textContent = `
             .inline-code {
-                background-color: #f4f4f4;
+                background-color: #efefef;
                 padding: 0px 7px;
                 font-size: 1.2em;
+                color: #333;
             }
-            pre {
-                background: #222222;
-                color: whitesmoke;
-                padding:0.5rem;
-            }
+            // pre {
+            //     background: #222222;
+            //     color: whitesmoke;
+            //     padding:0.5rem;
+            // }
         `
         this.iframeDoc.head.appendChild(style);
+        
+        const highlightJsLink = this.iframeDoc.createElement("link");
+        // highlightJsLink.setAttribute("href","https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.css"); // dark mode
+        highlightJsLink.setAttribute("href","https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"); //light mode
+        highlightJsLink.setAttribute("rel", "stylesheet");
+        this.iframeDoc.head.appendChild(highlightJsLink);
+
+        const highlightJsScript = this.iframeDoc.createElement("script");
+        highlightJsScript.setAttribute("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
+        this.iframeDoc.head.appendChild(highlightJsScript);
+
+        // this.iframeDoc.head.textContent += `
+        //     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+        //     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        // `
     }
     removeScripts() {
-        const scripts = this.iframeDoc.querySelectorAll("script");
+        const scripts = this.iframeDoc.body.querySelectorAll("script");
         scripts.forEach((script) => {
             this.iframeBody.removeChild(script);
             const newScript = this.iframeDoc.createElement("script");
@@ -50,8 +66,12 @@ class MckD {
             this.iframeBody.appendChild(newScript);
             this.iframeBody.removeChild(newScript);
         });
+        const newScript = this.iframeDoc.createElement("script");
+        newScript.text = "hljs.highlightAll();";
+        this.iframeBody.appendChild(newScript);
+        this.iframeBody.removeChild(newScript);
     }
-    interprate(text) {
+    render(text) {
         this.iframeBody.innerHTML = this.renderer.Render(text);
         this.removeScripts();
     }
