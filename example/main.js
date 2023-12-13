@@ -1,4 +1,4 @@
-import MckD from "../src/Mckd.js";
+import MckD from "../src/MckD.js";
 
 const markdownInput = document.querySelector("#markdown-input");
 const markdownInterprater = new MckD({"element": ".markdown-display"});
