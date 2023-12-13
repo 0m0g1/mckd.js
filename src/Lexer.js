@@ -425,9 +425,9 @@ class Lexer {
                 }
 
                 code += this.input[this.currentPositionOnInput]
+                .replace("&", "&amp;")
                 .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("&", "&amp;");
+                .replace(">", "&gt;");
                 this.currentPositionOnInput++;
         
                 // Check for the end of input before reaching the closing triple backticks
